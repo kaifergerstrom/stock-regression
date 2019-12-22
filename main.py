@@ -89,7 +89,7 @@ def plot_results(df, predictions):
 
 	plt.title('Date vs. Closing Price of GLD', fontsize=20)
 	plt.plot(actual_dates, df['Close'], '-', label="Historic Price")  # Plot the values as two seperate lines (Time vs Price)
-	plt.plot(predicted_dates, predictions, '-', label="Predicted Price")
+	plt.plot(predicted_dates, predictions, '-', label="Predicted Price ({} days)".format(len(predictions)))
 	plt.legend(loc="upper right")
 
 	ax = plt.gcf().axes[0]  # Define axis for format
@@ -100,6 +100,8 @@ def plot_results(df, predictions):
 
 
 if __name__ == "__main__":
+
+	days = 10  # Amount of days in the future to predict
 
 	outputFile = "data"  # Name of output serialize file
 	dataPath = "json/gldSymbol.json"  # Path to json file for data parsing
