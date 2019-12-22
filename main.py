@@ -2,6 +2,9 @@ import json, pickle, math, os, time, datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
+from datetime import datetime, timedelta
+from matplotlib.dates import DateFormatter
 from matplotlib import style
 from sklearn import preprocessing, svm
 from sklearn.model_selection import train_test_split
@@ -61,8 +64,39 @@ def create_training_data(df, predictor_col, pct_train, day_shift):
 	return predictions, accuracy
 
 
-def display_predictions():
-	pass
+def plot_results(df, predictions):
+
+	plt.style.use('seaborn-notebook')  # Set style scheme of graph
+
+	# Calculate the dates of the predicted values
+	last_day = df.iloc[-1]['Date']  # Get most recent day
+	last_day = datetime.strptime(last_day, "%m/%d/%Y")  # Format last day to use delta change
+	next_day = last_day + timedelta(days=1)  # Get next datetime
+	prediction_days = []  # Empty array to store x values for graph
+
+	for i in predictions:  #  Loop through all the predictions
+		formatted_date = datetime.strftime(next_day, "%m/%d/%Y")  # Format the date to be mapped
+		prediction_days.append(formatted_date)  # Append the date to the x values
+		next_day = next_day + timedelta(days=1)  # Increment day by 1
+	
+	actual_dates = list(map(datetime.strptime, df['Date'], len(df['Date'])*['%m/%d/%Y']))
+	predicted_dates = list(map(datetime.strptime, prediction_days, len(prediction_days)*['%m/%d/%Y']))
+
+	formatter = md.DateFormatter('%Y-%m-%d')  # Format date string for axis
+
+	plt.xlabel('Date', fontsize=16)
+	plt.ylabel('Closing Price ($)', fontsize=16)
+
+	plt.title('Date vs. Closing Price of GLD', fontsize=20)
+	plt.plot(actual_dates, df['Close'], '-', label="Historic Price")  # Plot the values as two seperate lines (Time vs Price)
+	plt.plot(predicted_dates, predictions, '-', label="Predicted Price")
+	plt.legend(loc="upper right")
+
+	ax = plt.gcf().axes[0]  # Define axis for format
+	ax.xaxis.set_major_formatter(formatter)  # Apply date formatter to axis
+	plt.gcf().autofmt_xdate(rotation=25)  # Auto fit dates to axis (no overlap)
+	plt.show()
+
 
 
 if __name__ == "__main__":
@@ -75,19 +109,8 @@ if __name__ == "__main__":
 		serialize_df(dataPath, outputFile)  # Create serialized dataframe
 
 	df = create_df("data")  # Format dataframe
-	predictions, accuracy = create_training_data(df, "Close", 0.2, 8)  # Get predictions
-	
-	'''
-	print(predictions, df['Close'])
-	style.use('ggplot')
-	plt.plot(df['Close'])
-	plt.plot(predictions)
-	plt.legend(loc=4)
-	plt.xlabel('Date')
-	plt.ylabel('Price')
-	plt.show()
-	'''
-
+	predictions, accuracy = create_training_data(df, "Close", 0.2, 5)  # Get predictions
+	plot_results(df, predictions)
 		
 
 
